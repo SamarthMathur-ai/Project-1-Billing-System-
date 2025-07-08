@@ -32,3 +32,5 @@ All of this works from the terminal using simple menu options.
 - Input checks for invalid entries
 - Handles missing or incorrect CSV lines without crashing
 
+## Here is a link for my google documentation for this project: https://docs.google.com/document/d/1zGMOeKct2S9kO7Hs3m4dsRN6WGaKWbhFX5nQRkZZPSY/edit?usp=sharing
+
