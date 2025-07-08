@@ -1,173 +1,640 @@
 import java.util.*;
 import java.io.*;
 
+// *! CHECK IF THESE ARE NECESSARY IMPORT, BUT ANYWAYS REMEMBER THEM
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class Code {
 
-        public static void main(String[] args) {
-                UserInterface user = new UserInterface();
-                Extra ex = new Extra();
-                Product pro1 = new Product("Product 1", 10);
-                Product pro2 = new Product("Product 2", 20);
-                File billfile = new File("Bill.txt");
+    public static void main(String args[]) {
+        Scanner sc = new Scanner(System.in);
+        ArrayList<ProductDetails> list = new ArrayList<>();
+        String csvFile = "Product.csv";
 
 
-                System.out.println("Welcome to our website!!\n\nJust follow the two step process to buy products at exciting offer.\n");
-                Scanner sc = new Scanner(System.in);
+ //-----------------------------The code here reads the already existing product file if any to input the products so that user don't have to put the products again and again.
+        try (BufferedReader reader = new BufferedReader(new FileReader("Product.csv"))) {
+            reader.readLine();
+            reader.readLine();
+            reader.readLine();
+            String line;
 
-                 //FOR USERNAME
-                System.out.print("Enter your name: ");
-                String name = sc.nextLine();
-                
-                user.setUsername(name);
-                System.out.println();
+            while ((line = reader.readLine()) != null) {
 
-                //FOR PASSWORD
-                System.out.print("Enter your phoneNumber: ");
-                String phoneNumber = sc.next();
-                user.setPhoneNumber(phoneNumber);
-                System.out.println();
-
-                //PRODUCT CHOOSING
-
-                
-
-                int totalAmount = 0;
-                Product totalprices[] = {pro1, pro2};
-               
-                
-
-                //TOTAL AMOUNT CALCULATION
-                
-                do {
-                        System.out.println("Hello!! " + name + " here are the following products you can select from: ");
-                        System.out.println("Product 1 : 10 ruppees(Enter 1)\nProduct 2 : 20 ruppees(Enter 2)\nTotal Bill(Enter 3)");
-
-                        int number = sc.nextInt();
-
-                        switch (number) {
-                                case 1: pro1.totalprice = 0;
-                                        System.out.println("Enter the amount you want to have: ");
-                                        pro1.amount = sc.nextInt();
-                                        pro1.totalprice += pro1.calculatingTotalAmount(pro1.amount, pro1.price);     
-                                        break;
-
-                                case 2: pro2.totalprice = 0;
-                                        System.out.println("Enter the amount you want to have: ");
-                                        pro2.amount = sc.nextInt();
-                                        pro2.totalprice += pro1.calculatingTotalAmount(pro2.amount, pro2.price);
-                                        break;
-
-                                case 3: try {
-                                                billfile.createNewFile();
-                                        } catch (IOException e) {
-                                        
-                                                e.printStackTrace();
-                                        }
-
-                                        
-
-                                        System.out.println("\nYour Bill: ");
-                                        for(Product p : totalprices) {
-                                        totalAmount += p.totalprice;
-                                        System.out.println(p.name + " : " + p.price + " Ruppees, Total amount purchased: " + p.amount);
-                                       
-                                        }
-                                        System.out.println("Total price of the purchase is: " + totalAmount);
-                                        
-                                        try {
-                                                FileWriter filewriter = new FileWriter("Bill.txt");
-                                                
-                                                filewriter.write("Your Bill: " + "\n");
-                                                for(Product p : totalprices) {
-                                                        filewriter.write(p.name + " : " + p.price + " Ruppees, Total amount purchased: " + p.amount + "\n");;
-                                                }
-                                                filewriter.write("Total price of the purchase is: " + totalAmount);
-                                                filewriter.close();
-
-                                        } catch (IOException e) {
-                                                
-                                                e.printStackTrace();
-                                        }
-                                        
-
-                                        
-                                        
-                                
-
-                                        return;                                                                             
-                                default: System.out.println("Enter valid input.");
-                                        break;           
-                        }
-                        System.out.println();
-                }while(true);
-                
-
-
-               
-
-                
-        }
-}
-
-
-class Product {
-        
-        int totalprice;
-        int price;
-        int amount;
-        String name;
-
-        Product(String name, int price) {
-                this.name = name;
-                this.price = price;
-        }
-        
-       
-        public void setAmount(int amount) {
-                this.amount = amount;
-        }
-
-        public int getAmount() {
-                return this.amount;
-        }
-
-        
-
-        public int calculatingTotalAmount(int amount, int price) {
-                setAmount(amount);
-                return amount*price;
-        }
-}
-
-
-
-class UserInterface {
-        String username;
-        String phoneNumber;
-        public void setUsername(String username) {
-               this.username = username;
-        }
-        public String getUsername() {
-                return username;
-        }
-        public void setPhoneNumber(String phoneNumber) {
-                this.phoneNumber = phoneNumber;
-        }
-        public String getPhoneNumber() {
-                return phoneNumber;
-        }
-
-}
-
-class Extra{
-        public int total(int[] arr) {
-                int total = 0;
-                for(int i = 0; i < arr.length; i++) {
-                        total += arr[i];
+                String[] parts = line.split(",");
+                if(parts.length < 4) {
+                    System.out.println("Skipping the csv line: " + line);
+                    continue;
                 }
-                return total;
-                
+                String name = parts[1];
+                int price = Integer.parseInt(parts[2]);
+                int qty = Integer.parseInt(parts[3]);
+
+
+                ProductDetails p = new ProductDetails(name, price, qty);
+                list.add(p);
+            }
+
+
+        } catch (Exception e) {
+            // TODO: handle exception
         }
+//---------------------------------------------------------------------------------------------------------------------------
+
+
+
+//----------------------------------------------------- FIRST PAGE--------------------------------------------------------------------------------------------------------------------------
+        while (true) {
+            // BASIC INTERFACE
+            System.out.println("\nWelcome to my project.");
+            System.out.println("\nWhat do you want to do?\n");
+            System.out.println("1. Add/Update the product details of your store.(Enter 1 on your keyboard.)\n2. Make a bill for the customer.(Enter 2 on your keyboard.)\n3. To exit the program.(Enter 3 on your keyboard.)");
+
+            // *NOW LET'S DO INPUT VALIDATION AND ERROR CASE HANDLING
+            // !Aise Initialise karega to local variable ka issue nahi aayega
+            int basicCase = 0;
+            // !YAHA PE WHILE LAGANA PADEGA KYUKI VARNA BREAK SE LOOP EXIT AAYEGA AND IT WILL BE SAME EVERYWHERE
+            while (true) {
+                if (sc.hasNextInt()) {
+                    basicCase = sc.nextInt();
+                    sc.nextLine();
+                    if (basicCase == 1 || basicCase == 2 || basicCase == 3) {
+                        break;
+                    } else {
+                        System.out.println("Invalid Input");
+                    }
+                } else {
+                    System.out.println("Invalid Input");
+                    sc.nextLine();
+                }
+            }
+
+            if(basicCase == 3) {
+                System.out.println("Thank you for using our program.");
+                break;
+            }
+
+//--------------------------------------------------------------------------------------------------------------------------------------------
+            // SWITCH CASE FOR BASIC INTERFACE
+
+            while (true) {
+                switch (basicCase) {
+                    case 1:                                                   //PRODUCT ADDING INTERFACE
+                        while (true) {
+
+                            System.out.println("\nFollowing is the layout of your inventory.\n");
+
+                            for (int i = 0; i < list.size(); i++) {
+                                System.out.println(i + 1 + ".Product name: " + list.get(i).name);
+                                System.out.println("  Product price: " + list.get(i).price);
+                                System.out.println("  Product amount: " + list.get(i).amount);
+                                System.out.println();
+                            }
+                            System.out.println("1. For adding a new product press 1 on your keyboard.\n2. For updating the informaation of a product press 2 on your keyboard.\n3. To get to previous window.\n");
+
+                            //PRODUCT ADDITION SWITCH CASE
+                            int ProductCase = 0;
+                            while (true) {
+                                if (sc.hasNextInt()) {
+                                    ProductCase = sc.nextInt();
+                                    sc.nextLine();
+                                    if (ProductCase == 1 || ProductCase == 2 || ProductCase == 3) {
+                                        break;
+                                    } else {
+                                        System.out.println("Invalid Input");
+                                    }
+                                } else {
+                                    System.out.println("Invalid Input");
+                                    sc.nextLine();
+                                }
+                            }
+
+
+                            if (ProductCase == 3) {
+                                break;
+                            }
+
+                            switch (ProductCase) {
+
+                                case 1:
+                                    int existingSize = list.size();//Adding a new product
+                                    String productName;
+                                    System.out.print("Enter Product name: ");
+                                    while(true) {
+                                        productName = sc.nextLine().trim();// Remove extra spaces before and trailing
+                                        if(productName.isEmpty()) {
+                                            System.out.println("Cannot have an empty name.");
+                                        } else {
+                                            break;
+                                        }
+                                    }
+
+                                    System.out.print("\nEnter Product price: ");
+                                    int productPrice = 0;
+                                    // * ERROR CASE FOR PRICE
+                                    while (true) {
+                                        if (sc.hasNextInt()) {
+                                            productPrice = sc.nextInt();
+                                            sc.nextLine();
+                                            if (productPrice >= 0) {
+                                                break;
+                                            } else {
+                                                System.out.println("Incorrect Input");
+                                            }
+                                        } else {
+                                            System.out.println("Incorrect Input");
+                                            sc.nextLine();
+                                        }
+                                    }
+
+
+                                    // * SAME FOR PRODUCT AMOUNT
+                                    System.out.print("\nEnter Product quantity: ");
+                                    int productAmount = 0;
+                                    while (true) {
+                                        if (sc.hasNextInt()) {
+                                            productAmount = sc.nextInt();
+                                            sc.nextLine();
+                                            if (productAmount >= 0) {
+                                                break;
+                                            } else {
+                                                System.out.println("Incorrect Input");
+                                            }
+                                        } else {
+                                            System.out.println("Incorrect Input");
+                                            sc.nextLine();
+                                        }
+                                    }
+
+                                    ProductDetails p1 = new ProductDetails(productName, productPrice, productAmount);
+                                    list.add(p1);
+
+                                    try (FileWriter mainfile = new FileWriter(csvFile, true)) {
+                                        // *! CREATING FILE CLASS IT DOES NOT CREATE A NEW FILE IT JUST A NEW OBJECT WHICH DIRECT TO THE FILE AND HELP INTERACTING FILE.
+                                        File f = new File("Product.csv");
+                                        boolean fileLength = f.length() == 0;
+
+                                        if (fileLength) {
+                                            mainfile.append("Store Name").append("\n");
+                                            mainfile.append("Product details: ").append("\n");
+                                            mainfile.append("S.no.,Name,Price,Qty.");
+                                            mainfile.append("\n");
+
+                                        }
+
+                                        // ** HERE WE WILL ADD NEW PRODUCT IN THE FILE AND LIST
+                                        for (int i = existingSize; i < list.size(); i++) {
+                                            mainfile.append(i + 1 + "," + list.get(i).name + "," + list.get(i).price + "," + list.get(i).amount);
+                                            mainfile.append("\n");
+                                        }
+
+                                    } catch (Exception e) {
+                                        // TODO: handle exception
+                                    }
+                                    break;
+
+
+                                case 2:                                 //UPDATING A PRODUCT
+                                    System.out.println("\nEnter the number of product(displayed above) to make changes in your inventory: \n");
+
+                                    // * WE HAVE TO PUT ERROR CASE HERE ALSO AS IT WILL SHOW A PROBLEM IF WE PUT THE NUMBER GREATER AND SMALLER THAN THE LIST AND THE GENERAL INPUT CORRECTION HERE ALSO
+                                    int numProduct = 0;
+                                    while (true) {
+                                        if (sc.hasNextInt()) {
+                                            numProduct = sc.nextInt();
+                                            sc.nextLine();
+                                            if (numProduct > 0 && numProduct <= list.size()) {
+                                                break;
+                                            } else {
+                                                System.out.println("Incorrect Input");
+                                            }
+                                        } else {
+                                            System.out.println("Incorrect Input");
+                                            sc.nextLine();
+                                        }
+                                    }
+
+
+                                    System.out.println("1.To delete " + list.get(numProduct - 1).name + " from your inventory press 1.\n2.To update the product press 2.");
+
+                                    // FOR UPDATE SWITCH CASE
+                                    int updateCase = 0;
+                                    while (true) {
+                                        if (sc.hasNextInt()) {
+                                            updateCase = sc.nextInt();
+                                            sc.nextLine();
+                                            if (updateCase == 1 || updateCase == 2) {
+                                                break;
+                                            } else {
+                                                System.out.println("Invalid Input");
+                                            }
+                                        } else {
+                                            System.out.println("Invalid Input");
+                                            sc.nextLine();
+                                        }
+
+                                    }
+
+                                    switch (updateCase) {
+                                        case 1:                               //DELETING THE PRODUCT
+                                            list.remove(numProduct - 1);
+                                            System.out.println("The product has been deleted from your inventory.");
+
+
+                                            //** NOW WE OVERWRITE THE WHOLE FILE AND LOOP THE WHOLE LIST AGAIN AND AS THE DELETE PART IS ALREADY REMOVED IT WILL NOT WRITE THAT PART */
+                                            try (FileWriter mainfile = new FileWriter(csvFile, false)) {
+                                                // *! What false does:
+                                                // *! Tells Java: “overwrite the file”
+                                                // *! Clears all existing contents inside the file
+                                                // *! Keeps the same file, just starts writing from the top again
+                                                mainfile.append("Store Name").append("\n");
+                                                mainfile.append("Product details: ").append("\n");
+                                                mainfile.append("S.no.,Name,Price,Qty.");
+                                                mainfile.append("\n");
+
+
+                                                for (int i = 0; i < list.size(); i++) {
+                                                    mainfile.append(i + 1 + "," + list.get(i).name + "," + list.get(i).price + "," + list.get(i).amount);
+                                                    mainfile.append("\n");
+                                                }
+
+
+                                            } catch (Exception e) {
+                                                // TODO: handle exception
+                                            }
+
+                                            // ** break the code after making changes in the csv file.
+                                            break;
+
+                                        case 2:                               //UPDATING THE PRODUCT
+                                            System.out.print("Enter Product name: ");
+                                            String upProductName;
+                                            while(true) {
+                                                upProductName = sc.nextLine().trim();
+                                                if(upProductName.isEmpty()) {
+                                                    System.out.println("Cannot have an empty name.");
+                                                } else {
+                                                    break;
+                                                }
+                                            }
+
+                                            System.out.print("\nEnter Product price: ");
+                                            int upProductPrice = 0;
+                                            while (true) {
+                                                if (sc.hasNextInt()) {
+                                                    upProductPrice = sc.nextInt();
+                                                    sc.nextLine();
+                                                    if (upProductPrice >= 0) {
+                                                        break;
+                                                    } else {
+                                                        System.out.println("Incorrect Input");
+                                                    }
+                                                } else {
+                                                    System.out.println("Incorrect Input");
+                                                    sc.nextLine();
+                                                }
+                                            }
+
+
+                                            System.out.print("\nEnter Product quantity: ");
+                                            int upProductAmount;
+                                            while (true) {
+                                                if (sc.hasNextInt()) {
+                                                    upProductAmount = sc.nextInt();
+                                                    sc.nextLine();
+                                                    if (upProductAmount >= 0) {
+                                                        break;
+                                                    } else {
+                                                        System.out.println("Incorrect Input");
+                                                    }
+                                                } else {
+                                                    System.out.println("Incorrect Input");
+                                                    sc.nextLine();
+                                                }
+                                            }
+
+                                            list.get(numProduct - 1).setProductInfo(upProductName, upProductPrice, upProductAmount);
+                                            System.out.println("The product details have been updated.");
+
+                                            try (FileWriter mainfile = new FileWriter(csvFile, false)) {
+
+                                                mainfile.append("Store Name").append("\n");
+                                                mainfile.append("Product details: ").append("\n");
+                                                mainfile.append("S.no.,Name,Price,Qty.");
+                                                mainfile.append("\n");
+
+
+                                                for (int i = 0; i < list.size(); i++) {
+                                                    mainfile.append(i + 1 + "," + list.get(i).name + "," + list.get(i).price + "," + list.get(i).amount);
+                                                    mainfile.append("\n");
+                                                }
+
+
+                                            } catch (Exception e) {
+                                                // TODO: handle exception
+                                            }
+
+                                            // ** FOR UPDATING WE WILL DO THE SAME AS WE DID FOR DELETING, JUST OVERWRITE THE WHOLE THING
+
+
+                                            break;
+
+                                        default:
+                                            System.out.println("Enter correct input.");
+                                    }
+                                    break;
+                            }
+
+                        }
+                        break;
+
+
+                    case 2:                                                     // CUSTOMER INFORMATION INPUT
+
+
+                        System.out.print("\nEnter customer's name: ");
+                        String customerName;
+                        while(true) {
+                            customerName = sc.nextLine().trim();
+                            if(customerName.isEmpty()) {
+                                System.out.println("Cannot have an empty name.");
+                            } else {
+                                break;
+                            }
+                        }
+
+                        String customerPhoneNumber;
+                        while (true) {
+                            System.out.print("\nEnter customer's phone number: ");
+                            customerPhoneNumber = sc.nextLine();
+
+                            if (customerPhoneNumber.length() == 10 && customerPhoneNumber.charAt(0) != '0' && customerPhoneNumber.matches("[0-9]+")) {//* ALSO ADD THIS TO YOUR NOTES */) {
+                                break;
+                            } else {
+                                System.out.println("Enter correct phone number.");
+                            }
+                        }
+
+                        System.out.print("\nEnter customer's address: ");
+                        String customerAddress;
+                        while(true) {
+                            customerAddress = sc.nextLine().trim();
+                            if(customerAddress.isEmpty()) {
+                                System.out.println("Cannot have an empty address name.");
+                            } else {
+                                break;
+                            }
+                        }
+                        UserInfo customerInfo = new UserInfo(customerName, customerPhoneNumber, customerAddress);
+
+                        ArrayList<Bill> billList = new ArrayList<>();
+
+                        while (true) {
+
+                            System.out.println("\n1. Enter the products the customer has bought.\n2. Make the bill.\n3. Exit to the previous windows.");
+                            int billCase = 0;
+
+                            while (true) {
+                                if (sc.hasNextInt()) {
+                                    billCase = sc.nextInt();
+                                    sc.nextLine();
+                                    if (billCase == 1 || billCase == 2 || billCase == 3) {
+                                        break;
+                                    } else {
+                                        System.out.println("Invalid Input");
+                                    }
+                                } else {
+                                    System.out.println("Invalid Input");
+                                    sc.nextLine();
+                                }
+                            }
+
+                            if (billCase == 3) {
+                                break;
+                            }
+
+                            switch (billCase) {
+                                case 1:
+                                    while (true) {
+                                        System.out.println("\nFollowing is the layout of your inventory.\n");
+
+                                        for (int i = 0; i < list.size(); i++) {
+                                            System.out.println(i + 1 + ".Product name: " + list.get(i).name);
+                                            System.out.println("  Product price: " + list.get(i).price);
+                                            System.out.println("  Product amount: " + list.get(i).amount);
+                                            System.out.println();
+                                        }
+
+                                        System.out.println("\nEnter the product no. the customer has chosen from above list: ");
+                                        int customerNum;
+
+                                        while (true) {
+                                            if (sc.hasNextInt()) {
+                                                customerNum = sc.nextInt();
+                                                sc.nextLine();
+                                                if (customerNum > 0 && customerNum <= list.size()) {
+                                                    if(list.get(customerNum-1).amount == 0) {
+                                                        System.out.println("The product is out of stock.");
+                                                    } else {
+                                                        break;
+                                                    }
+                                                } else {
+                                                    System.out.println("Incorrect Input");
+                                                }
+                                            } else {
+                                                System.out.println("Incorrect Input");
+                                                sc.nextLine();
+                                            }
+                                        }
+
+                                        int n = customerNum - 1;
+                                        System.out.println("Enter the quantity taken of " + list.get(customerNum - 1).name + ": ");
+                                        int customerAmount;
+                                        while (true) {
+                                            if (sc.hasNextInt()) {
+                                                customerAmount = sc.nextInt();
+                                                sc.nextLine();
+
+                                                //* EXTRA IF ISLIYE DALA HAI AS IT WILL BE READ NONTHELESS AND ELSE STATEMENT WILL BE CONNECTED TO THE LAST IF ANYWAYS */
+                                                if (customerAmount > list.get(n).amount) {
+                                                    System.out.println("The given quantity exceeds the storage quantity.");
+                                                }
+                                                if (customerAmount > 0 && customerAmount < list.get(n).amount) {
+                                                    break;
+                                                } else {
+                                                    System.out.println("Invalid Input");
+                                                }
+                                            } else {
+                                                System.out.println("Invalid Input");
+                                                sc.nextLine();
+                                            }
+                                        }
+
+
+                                        // ** NOW WE WILL PUT ITEMS IN BILL LIST FOR THAT WE HAVE TO CREATE A NEW OBJECT FOR BILL BUT FOR THAT WE NEED THINGS
+                                        String billname = list.get(n).name;
+                                        int billprice = list.get(n).price;
+                                        int billqty = customerAmount;
+
+                                        // ** NOW WE WILL MAKE CHANGES IN THE AMOUNT OF THE PRODUCT LIST AS WE HAVE CHANGED THE AMOUNT OF THE PRODUCT WE BOUGHT
+                                        // ! Remember to make this change in the main csv file also
+                                        list.get(n).amount -= customerAmount;
+
+                                        int subtotal = billprice * billqty;
+                                        Bill b = new Bill(billname, billprice, billqty, subtotal);
+                                        billList.add(b);
+
+
+                                        System.out.println("To exit out press 0 otherwise press any integer on your keyboard.");
+                                        int exitBill;
+                                        while (true) {
+                                            if (sc.hasNextInt()) {
+                                                exitBill = sc.nextInt();
+                                                sc.nextLine();
+                                                break;
+                                            } else {
+                                                System.out.println("Invalid Input");
+                                                sc.nextLine();
+                                            }
+                                        }
+
+                                        if (exitBill == 0) {
+                                            break;
+                                        }
+                                    }
+                                    break;
+
+
+                                case 2:
+                                    System.out.println("Total Bill is: ");
+                                    int totalAmount = 0;
+                                    for (int i = 0; i < billList.size(); i++) {
+                                        totalAmount += billList.get(i).subtotal;
+                                    }
+                                    System.out.println(totalAmount);
+
+
+                                    try (FileWriter mainfile = new FileWriter(csvFile, false)) {
+
+                                        mainfile.append("Store Name").append("\n");
+                                        mainfile.append("Product details: ").append("\n");
+                                        mainfile.append("S.no.,Name,Price,Qty.");
+                                        mainfile.append("\n");
+                                        for (int i = 0; i < list.size(); i++) {
+                                            mainfile.append(i + 1 + "," + list.get(i).name + "," + list.get(i).price + "," + list.get(i).amount);
+                                            mainfile.append("\n");
+                                        }
+                                    } catch (Exception e) {
+                                        // TODO: handle exception
+                                    }
+
+
+                                    // !VERY IMPORTANT TO LEARN A NEW THING
+                                    LocalDateTime now = LocalDateTime.now();
+                                    DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss");
+
+                                    // *formatted contains colons (:) which are invalid in filenames on Windows. So clean them
+                                    String formatted = now.format(format);
+
+                                    // * NOW WE WILL MAKE THE ACTUAL BILL
+
+                                    String billFile = "Bill" + formatted + "_" + customerName + ".csv";
+
+                                    try (FileWriter bill = new FileWriter(billFile)) {
+                                        bill.append("              XYZ Store").append("\n");
+                                        bill.append("          " + formatted).append("\n");
+                                        bill.append("S.no.,Product,Price,Qty,Subtotal");
+                                        bill.append("\n");
+
+
+                                        // * NOW ON ACTUAL BILL
+                                        for (int i = 0; i < billList.size(); i++) {
+                                            bill.append(i + 1 + "," + billList.get(i).name + "," + billList.get(i).price + "," + billList.get(i).quantity + "," + billList.get(i).subtotal);
+                                            bill.append("\n");
+                                        }
+
+                                        bill.append("Total Amount:                 ");
+
+                                        // !REMEMBER APPEND DOES NOT TAKE INTEGER ONLY STING IT TAKES
+                                        bill.append(String.valueOf(totalAmount));
+                                        bill.append("\n");
+
+                                    } catch (Exception e) {
+                                        // TODO: handle exception
+                                    }
+
+                            }
+
+
+                        }
+
+
+                    default:
+                        System.out.println("Enter correct input.");
+                        break;
+
+
+                }
+
+                break;
+            }
+
+        }
+
+
+    }
 }
 
+
+class UserInfo {
+    String name;
+    String phoneNumber;
+    String address;
+
+    UserInfo(String name, String phoneNumber, String address) {
+        this.name = name;
+        this.phoneNumber = phoneNumber;
+        this.address = address;
+
+    }
+
+
+}
+
+class ProductDetails {
+    String name;
+    int price;
+    int amount;
+
+    ProductDetails(String name, int price, int amount) {
+        this.name = name;
+        this.price = price;
+        this.amount = amount;
+    }
+
+    public void setAmount(int amount) {
+        this.amount = amount;
+    }
+
+    public void setProductInfo(String name, int price, int amount) {
+        this.name = name;
+        this.price = price;
+        this.amount = amount;
+    }
+}
+
+
+class Bill {
+    String name;
+    int price;
+    int quantity;
+    int subtotal;
+
+    Bill(String name, int price, int quantity, int subtotal) {
+        this.name = name;
+        this.price = price;
+        this.quantity = quantity;
+        this.subtotal = subtotal;
+    }
+}
