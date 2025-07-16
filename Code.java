@@ -9,38 +9,9 @@ public class Code {
 
     public static void main(String args[]) {
         Scanner sc = new Scanner(System.in);
-        ArrayList<ProductDetails> list = new ArrayList<>();
-        String csvFile = "Product.csv";
-
-
  //-----------------------------The code here reads the already existing product file if any to input the products so that user don't have to put the products again and again.
-        try (BufferedReader reader = new BufferedReader(new FileReader("Product.csv"))) {
-            reader.readLine();
-            reader.readLine();
-            reader.readLine();
-            String line;
-
-            while ((line = reader.readLine()) != null) {
-
-                String[] parts = line.split(",");
-                if(parts.length < 4) {
-                    System.out.println("Skipping the csv line: " + line);
-                    continue;
-                }
-                String name = parts[1];
-                int price = Integer.parseInt(parts[2]);
-                int qty = Integer.parseInt(parts[3]);
-
-
-                ProductDetails p = new ProductDetails(name, price, qty);
-                list.add(p);
-            }
-
-
-        } catch (Exception e) {
-            // TODO: handle exception
-        }
-//---------------------------------------------------------------------------------------------------------------------------
+        InventoryManagement im = new InventoryManagement();
+ // ---------------------------------------------------------------------------------------------------------------------------
 
 
 
@@ -84,13 +55,8 @@ public class Code {
                         while (true) {
 
                             System.out.println("\nFollowing is the layout of your inventory.\n");
-
-                            for (int i = 0; i < list.size(); i++) {
-                                System.out.println(i + 1 + ".Product name: " + list.get(i).name);
-                                System.out.println("  Product price: " + list.get(i).price);
-                                System.out.println("  Product amount: " + list.get(i).amount);
-                                System.out.println();
-                            }
+                            im.showInventory(im.getList());
+                            
                             System.out.println("1. For adding a new product press 1 on your keyboard.\n2. For updating the informaation of a product press 2 on your keyboard.\n3. To get to previous window.\n");
 
                             //PRODUCT ADDITION SWITCH CASE
@@ -118,7 +84,7 @@ public class Code {
                             switch (ProductCase) {
 
                                 case 1:
-                                    int existingSize = list.size();//Adding a new product
+                                    int existingSize = im.getList().size();//Adding a new product
                                     String productName;
                                     System.out.print("Enter Product name: ");
                                     while(true) {
@@ -168,30 +134,9 @@ public class Code {
                                     }
 
                                     ProductDetails p1 = new ProductDetails(productName, productPrice, productAmount);
-                                    list.add(p1);
+                                    im.getList().add(p1);
 
-                                    try (FileWriter mainfile = new FileWriter(csvFile, true)) {
-                                        // *! CREATING FILE CLASS IT DOES NOT CREATE A NEW FILE IT JUST A NEW OBJECT WHICH DIRECT TO THE FILE AND HELP INTERACTING FILE.
-                                        File f = new File("Product.csv");
-                                        boolean fileLength = f.length() == 0;
-
-                                        if (fileLength) {
-                                            mainfile.append("Store Name").append("\n");
-                                            mainfile.append("Product details: ").append("\n");
-                                            mainfile.append("S.no.,Name,Price,Qty.");
-                                            mainfile.append("\n");
-
-                                        }
-
-                                        // ** HERE WE WILL ADD NEW PRODUCT IN THE FILE AND LIST
-                                        for (int i = existingSize; i < list.size(); i++) {
-                                            mainfile.append(i + 1 + "," + list.get(i).name + "," + list.get(i).price + "," + list.get(i).amount);
-                                            mainfile.append("\n");
-                                        }
-
-                                    } catch (Exception e) {
-                                        // TODO: handle exception
-                                    }
+                                    im.addList(im.getList(), existingSize);
                                     break;
 
 
@@ -204,7 +149,7 @@ public class Code {
                                         if (sc.hasNextInt()) {
                                             numProduct = sc.nextInt();
                                             sc.nextLine();
-                                            if (numProduct > 0 && numProduct <= list.size()) {
+                                            if (numProduct > 0 && numProduct <= im.getList().size()) {
                                                 break;
                                             } else {
                                                 System.out.println("Incorrect Input");
@@ -216,7 +161,7 @@ public class Code {
                                     }
 
 
-                                    System.out.println("1.To delete " + list.get(numProduct - 1).name + " from your inventory press 1.\n2.To update the product press 2.");
+                                    System.out.println("1.To delete " + im.getList().get(numProduct - 1).name + " from your inventory press 1.\n2.To update the product press 2.");
 
                                     // FOR UPDATE SWITCH CASE
                                     int updateCase = 0;
@@ -238,32 +183,12 @@ public class Code {
 
                                     switch (updateCase) {
                                         case 1:                               //DELETING THE PRODUCT
-                                            list.remove(numProduct - 1);
+                                            im.getList().remove(numProduct - 1);
                                             System.out.println("The product has been deleted from your inventory.");
-
+                                      
 
                                             //** NOW WE OVERWRITE THE WHOLE FILE AND LOOP THE WHOLE LIST AGAIN AND AS THE DELETE PART IS ALREADY REMOVED IT WILL NOT WRITE THAT PART */
-                                            try (FileWriter mainfile = new FileWriter(csvFile, false)) {
-                                                // *! What false does:
-                                                // *! Tells Java: “overwrite the file”
-                                                // *! Clears all existing contents inside the file
-                                                // *! Keeps the same file, just starts writing from the top again
-                                                mainfile.append("Store Name").append("\n");
-                                                mainfile.append("Product details: ").append("\n");
-                                                mainfile.append("S.no.,Name,Price,Qty.");
-                                                mainfile.append("\n");
-
-
-                                                for (int i = 0; i < list.size(); i++) {
-                                                    mainfile.append(i + 1 + "," + list.get(i).name + "," + list.get(i).price + "," + list.get(i).amount);
-                                                    mainfile.append("\n");
-                                                }
-
-
-                                            } catch (Exception e) {
-                                                // TODO: handle exception
-                                            }
-
+                                            im.overwriteInventory(im.getList());
                                             // ** break the code after making changes in the csv file.
                                             break;
 
@@ -314,27 +239,10 @@ public class Code {
                                                 }
                                             }
 
-                                            list.get(numProduct - 1).setProductInfo(upProductName, upProductPrice, upProductAmount);
+                                            im.getList().get(numProduct - 1).setProductInfo(upProductName, upProductPrice, upProductAmount);
                                             System.out.println("The product details have been updated.");
 
-                                            try (FileWriter mainfile = new FileWriter(csvFile, false)) {
-
-                                                mainfile.append("Store Name").append("\n");
-                                                mainfile.append("Product details: ").append("\n");
-                                                mainfile.append("S.no.,Name,Price,Qty.");
-                                                mainfile.append("\n");
-
-
-                                                for (int i = 0; i < list.size(); i++) {
-                                                    mainfile.append(i + 1 + "," + list.get(i).name + "," + list.get(i).price + "," + list.get(i).amount);
-                                                    mainfile.append("\n");
-                                                }
-
-
-                                            } catch (Exception e) {
-                                                // TODO: handle exception
-                                            }
-
+                                            im.overwriteInventory(im.getList());
                                             // ** FOR UPDATING WE WILL DO THE SAME AS WE DID FOR DELETING, JUST OVERWRITE THE WHOLE THING
 
 
@@ -419,12 +327,7 @@ public class Code {
                                     while (true) {
                                         System.out.println("\nFollowing is the layout of your inventory.\n");
 
-                                        for (int i = 0; i < list.size(); i++) {
-                                            System.out.println(i + 1 + ".Product name: " + list.get(i).name);
-                                            System.out.println("  Product price: " + list.get(i).price);
-                                            System.out.println("  Product amount: " + list.get(i).amount);
-                                            System.out.println();
-                                        }
+                                        im.showInventory(im.getList());
 
                                         System.out.println("\nEnter the product no. the customer has chosen from above list: ");
                                         int customerNum;
@@ -433,8 +336,8 @@ public class Code {
                                             if (sc.hasNextInt()) {
                                                 customerNum = sc.nextInt();
                                                 sc.nextLine();
-                                                if (customerNum > 0 && customerNum <= list.size()) {
-                                                    if(list.get(customerNum-1).amount == 0) {
+                                                if (customerNum > 0 && customerNum <= im.getList().size()) {
+                                                    if(im.getList().get(customerNum-1).amount == 0) {
                                                         System.out.println("The product is out of stock.");
                                                     } else {
                                                         break;
@@ -449,7 +352,7 @@ public class Code {
                                         }
 
                                         int n = customerNum - 1;
-                                        System.out.println("Enter the quantity taken of " + list.get(customerNum - 1).name + ": ");
+                                        System.out.println("Enter the quantity taken of " + im.getList().get(customerNum - 1).name + ": ");
                                         int customerAmount;
                                         while (true) {
                                             if (sc.hasNextInt()) {
@@ -457,10 +360,10 @@ public class Code {
                                                 sc.nextLine();
 
                                                 //* EXTRA IF ISLIYE DALA HAI AS IT WILL BE READ NONTHELESS AND ELSE STATEMENT WILL BE CONNECTED TO THE LAST IF ANYWAYS */
-                                                if (customerAmount > list.get(n).amount) {
+                                                if (customerAmount > im.getList().get(n).amount) {
                                                     System.out.println("The given quantity exceeds the storage quantity.");
                                                 }
-                                                if (customerAmount > 0 && customerAmount < list.get(n).amount) {
+                                                if (customerAmount > 0 && customerAmount < im.getList().get(n).amount) {
                                                     break;
                                                 } else {
                                                     System.out.println("Invalid Input");
@@ -473,13 +376,13 @@ public class Code {
 
 
                                         // ** NOW WE WILL PUT ITEMS IN BILL LIST FOR THAT WE HAVE TO CREATE A NEW OBJECT FOR BILL BUT FOR THAT WE NEED THINGS
-                                        String billname = list.get(n).name;
-                                        int billprice = list.get(n).price;
+                                        String billname = im.getList().get(n).name;
+                                        int billprice = im.getList().get(n).price;
                                         int billqty = customerAmount;
 
                                         // ** NOW WE WILL MAKE CHANGES IN THE AMOUNT OF THE PRODUCT LIST AS WE HAVE CHANGED THE AMOUNT OF THE PRODUCT WE BOUGHT
                                         // ! Remember to make this change in the main csv file also
-                                        list.get(n).amount -= customerAmount;
+                                        im.getList().get(n).amount -= customerAmount;
 
                                         int subtotal = billprice * billqty;
                                         Bill b = new Bill(billname, billprice, billqty, subtotal);
@@ -515,19 +418,7 @@ public class Code {
                                     System.out.println(totalAmount);
 
 
-                                    try (FileWriter mainfile = new FileWriter(csvFile, false)) {
-
-                                        mainfile.append("Store Name").append("\n");
-                                        mainfile.append("Product details: ").append("\n");
-                                        mainfile.append("S.no.,Name,Price,Qty.");
-                                        mainfile.append("\n");
-                                        for (int i = 0; i < list.size(); i++) {
-                                            mainfile.append(i + 1 + "," + list.get(i).name + "," + list.get(i).price + "," + list.get(i).amount);
-                                            mainfile.append("\n");
-                                        }
-                                    } catch (Exception e) {
-                                        // TODO: handle exception
-                                    }
+                                    im.overwriteInventory(im.getList());
 
 
                                     // !VERY IMPORTANT TO LEARN A NEW THING
@@ -636,5 +527,109 @@ class Bill {
         this.price = price;
         this.quantity = quantity;
         this.subtotal = subtotal;
+    }
+}
+
+class InventoryManagement {
+    private ArrayList<ProductDetails> list;
+    private final String csvFile = "Product.csv";
+
+    public InventoryManagement() {
+        list = new ArrayList<>();
+        loadInventory(list);
+    }
+
+    public ArrayList<ProductDetails> getList() { // *This method returns a list, and the items inside it are Product objects.This method will return a list that contains objects of the Product class" */
+        return list;
+    }
+    
+    // ?Static methods can’t access instance (non-static) variables like productList.
+    public void loadInventory(ArrayList<ProductDetails> list) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(csvFile))) {
+            reader.readLine();
+            reader.readLine();
+            reader.readLine();
+            String line;
+
+            while ((line = reader.readLine()) != null) {
+
+                String[] parts = line.split(",");
+                if (parts.length < 4) {
+                    System.out.println("Skipping the csv line: " + line);
+                    continue;
+                }
+                String name = parts[1];
+                int price = Integer.parseInt(parts[2]);
+                int qty = Integer.parseInt(parts[3]);
+
+                ProductDetails p = new ProductDetails(name, price, qty);
+                list.add(p);
+            }
+
+        } catch (Exception e) {
+            // TODO: handle exception
+        }
+
+    }
+
+    public void addList(ArrayList<ProductDetails> list, int existingSize) {
+        try (FileWriter mainfile = new FileWriter(csvFile, true)) {
+            // *! CREATING FILE CLASS IT DOES NOT CREATE A NEW FILE IT JUST A NEW OBJECT
+            // WHICH DIRECT TO THE FILE AND HELP INTERACTING FILE.
+            File f = new File("Product.csv");
+            boolean fileLength = f.length() == 0;
+
+            if (fileLength) {
+                mainfile.append("Store Name").append("\n");
+                mainfile.append("Product details: ").append("\n");
+                mainfile.append("S.no.,Name,Price,Qty.");
+                mainfile.append("\n");
+
+            }
+
+            // ** HERE WE WILL ADD NEW PRODUCT IN THE FILE AND LIST
+            for (int i = existingSize; i < list.size(); i++) {
+                mainfile.append(i + 1 + "," + list.get(i).name + "," + list.get(i).price + "," + list.get(i).amount);
+                mainfile.append("\n");
+            }
+
+        } catch (Exception e) {
+            // TODO: handle exception
+        }
+
+    }
+
+    public void showInventory(ArrayList<ProductDetails> list) {
+        for (int i = 0; i < list.size(); i++) {
+            System.out.println(i + 1 + ".Product name: " + list.get(i).name);
+            System.out.println("  Product price: " + list.get(i).price);
+            System.out.println("  Product amount: " + list.get(i).amount);
+            System.out.println();
+        }
+    }
+
+
+    public void overwriteInventory(ArrayList<ProductDetails> list) {
+        try (FileWriter mainfile = new FileWriter(csvFile, false)) {
+            // *! What false does:
+            // *! Tells Java: “overwrite the file”
+            // *! Clears all existing contents inside the file
+            // *! Keeps the same file, just starts writing from the top again
+            mainfile.append("Store Name").append("\n");
+            mainfile.append("Product details: ").append("\n");
+            mainfile.append("S.no.,Name,Price,Qty.");
+            mainfile.append("\n");
+
+
+            for (int i = 0; i < list.size(); i++) {
+                mainfile.append(i + 1 + "," + list.get(i).name + "," + list.get(i).price + "," + list.get(i).amount);
+                mainfile.append("\n");
+            }
+
+
+        } catch (Exception e) {
+            // TODO: handle exception
+        }
+
     }
 }
